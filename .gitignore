@@ -1,0 +1,32 @@
+# Python-generated files
+__pycache__/
+*.py[cod]
+
+# Build artifacts
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Environment / secrets
+.env
+.env.*
+
+# Backend private docs
+backend/api.md
+backend/user.md
+
+# macOS
+.DS_Store
+
+# Pytest
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
