@@ -1,53 +1,58 @@
 # SignalSnap
 
-SignalSnap is a real-time website visitor intelligence and lead-scoring platform.
+Real-time website visitor intelligence and lead scoring platform built with FastAPI, PostgreSQL, Redis Streams, and a lightweight JavaScript tracking SDK.
 
-It collects visitor activity from a website, processes events asynchronously through Redis, builds visitor and session profiles, calculates purchase intent, identifies potential leads, and exposes analytics through a FastAPI backend.
+SignalSnap collects visitor activity, processes events asynchronously, builds visitor/session profiles, calculates intent scores, and identifies potential leads.
 
 ## Architecture
 
 ```text
 Website
-   │
-   ▼
-Tracking Events
-   │
-   ▼
-FastAPI API
-   │
-   ▼
+   ↓
+SignalSnap JS SDK
+   ↓
+FastAPI /track
+   ↓
 Redis Streams
-   │
-   ▼
+   ↓
 Background Worker
-   │
-   ├── Visitor / Session Processing
-   ├── Event Processing
-   ├── Intent Scoring
-   ├── Lead Detection
-   └── IP Enrichment
-   │
-   ▼
+   ↓
 PostgreSQL
-   │
-   ▼
-Dashboard / REST API
+   ↓
+REST API + Dashboard
 ```
+
+### Features
+
+* Real-time visitor and session tracking
+* Automatic page-view and custom event tracking
+* Persistent anonymous visitor IDs
+* Redis Streams asynchronous processing
+* Visitor/session/event persistence
+* Behavioral intent scoring
+* Lead detection and status management
+* IP-based visitor enrichment
+* JWT + OAuth2 authentication
+* Analytics dashboard
+* Alembic migrations
+* Pytest test suite
+* Docker Compose support
 
 ## Tech Stack
 
-* Python
-* FastAPI
-* PostgreSQL
-* SQLAlchemy
-* Alembic
-* Redis
-* Redis Streams
-* JWT Authentication
-* OAuth2
-* Pytest
-* Uvicorn
-* HTML / CSS / JavaScript
+| Component       | Technology            |
+| --------------- | --------------------- |
+| Backend         | FastAPI, Python       |
+| Database        | PostgreSQL            |
+| ORM             | SQLAlchemy            |
+| Queue           | Redis Streams         |
+| Auth            | OAuth2 + JWT          |
+| Migrations      | Alembic               |
+| SDK             | Vanilla JavaScript    |
+| Dashboard       | HTML, CSS, JavaScript |
+| Testing         | Pytest                |
+| Package Manager | uv                    |
+| Deployment      | Docker                |
 
 ## Project Structure
 
@@ -55,489 +60,85 @@ Dashboard / REST API
 signalsnap/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py
 │   │   ├── models/
-│   │   ├── schemas/
 │   │   ├── routers/
+│   │   ├── schemas/
 │   │   ├── services/
 │   │   └── workers/
 │   ├── alembic/
-│   ├── tests/
-│   ├── alembic.ini
-│   └── pyproject.toml
-│
+│   └── tests/
 ├── dashboard/
-│   └── ...
-│
-└── test-site/
-    └── ...
+├── pixel/
+├── test-site/
+├── docker-compose.prod.yaml
+└── README.md
 ```
 
-# Requirements
+## Quick Start
 
-Make sure the following are installed:
-
-* Python 3.10+
-* `uv`
-* PostgreSQL
-* Docker
-* Git
-
-# Setup
-
-## 1. Create the Database
-
-Open PostgreSQL:
+### 1. Clone
 
 ```bash
-psql -U postgres
+git clone https://github.com/Raghav361-art/signalsnap.git
+cd signalsnap
 ```
 
-Create the SignalSnap database:
+### 2. Start PostgreSQL and Redis
 
-```sql
-CREATE DATABASE signalsnap;
+```bash
+docker compose -f docker-compose.prod.yaml up -d postgres redis
 ```
 
-Exit PostgreSQL:
-
-```sql
-\q
-```
-
-## 2. Run Database Migrations
-
-Move into the backend directory:
+### 3. Install backend
 
 ```bash
 cd backend
+uv sync
+uv run alembic upgrade head
 ```
 
-Run the migrations:
-
-```bash
-alembic upgrade head
-```
-
-## 3. Start Redis
-
-SignalSnap uses Redis for asynchronous event processing and Redis Streams.
-
-```bash
-docker run -d \
-  --name signalsnap-redis \
-  -p 6379:6379 \
-  redis:7
-```
-
-Verify Redis is running:
-
-```bash
-docker ps
-```
-
-## 4. Start the FastAPI Backend
-
-From the `backend` directory:
+### 4. Start API
 
 ```bash
 uv run uvicorn app.main:app --reload
 ```
 
-The API will be available at:
+### 5. Start worker
+
+```bash
+uv run python -m app.workers
+```
+
+API:
 
 ```text
 http://localhost:8000
 ```
 
-Swagger API documentation:
+Swagger:
 
 ```text
 http://localhost:8000/docs
 ```
 
-ReDoc documentation:
-
-```text
-http://localhost:8000/redoc
-```
-
-## 5. Start the Event Worker
-
-Open another terminal:
-
-```bash
-cd backend
-```
-
-Start the worker:
-
-```bash
-uv run python -m app.workers
-```
-
-Keep the worker running while using SignalSnap.
-
-## 6. Start the Dashboard
-
-Open another terminal:
-
-```bash
-cd dashboard
-```
-
-Start the dashboard:
-
-```bash
-python3 -m http.server 5173
-```
-
-Open:
-
-```text
-http://localhost:5173
-```
-
-## 7. Start the Test Website
-
-Open another terminal:
-
-```bash
-cd test-site
-```
-
-Start the test website:
-
-```bash
-python3 -m http.server 3000
-```
-
-Open:
-
-```text
-http://localhost:3000
-```
-
-# Running Tests
-
-From the backend directory:
-
-```bash
-uv run pytest -v
-```
-
-For more detailed output:
-
-```bash
-uv run pytest -vv
-```
-
-# Services
-
-Once everything is running:
-
-| Service   | URL                        |
-| --------- | -------------------------- |
-| Dashboard | http://localhost:5173      |
-| Test Site | http://localhost:3000      |
-| API       | http://localhost:8000      |
-| API Docs  | http://localhost:8000/docs |
-
-# Authentication
-
-SignalSnap uses JWT-based authentication with OAuth2.
-
-The authentication flow is:
-
-```text
-User
- │
- ▼
-Login
- │
- ▼
-OAuth2 Authentication
- │
- ▼
-JWT Access Token
- │
- ▼
-Protected API Endpoint
-```
-
-Protected endpoints require a valid JWT access token.
-
-# Event Processing
-
-SignalSnap separates event collection from event processing.
-
-```text
-Visitor
-   │
-   ▼
-Tracking Script
-   │
-   ▼
-/track API
-   │
-   ▼
-Redis Stream
-   │
-   ▼
-Background Worker
-   │
-   ├── Process Event
-   ├── Update Visitor
-   ├── Update Session
-   ├── Calculate Intent
-   └── Detect Lead
-   │
-   ▼
-PostgreSQL
-```
-
-This allows tracking events to be accepted by the API and processed asynchronously by the worker.
-
-# Core Features
-
-## Visitor Tracking
-
-Tracks website visitor activity and maintains visitor profiles.
-
-## Session Tracking
-
-Groups visitor activity into sessions.
-
-## Event Tracking
-
-Collects website events such as page views and other visitor interactions.
-
-## Intent Scoring
-
-Calculates purchase-intent scores based on visitor behavior.
-
-## Lead Detection
-
-Identifies visitors who demonstrate behavior associated with potential leads.
-
-## IP Enrichment
-
-Enriches visitor information using IP-based data where supported.
-
-## Real-Time Event Processing
-
-Uses Redis Streams and background workers to process visitor events asynchronously.
-
-## Analytics API
-
-Provides REST endpoints for retrieving visitor, event, lead, and statistics data.
-
-## Dashboard
-
-Provides a visual interface for monitoring visitors, events, leads, and analytics.
-
-# Database Migrations
-
-When database models change, create a new migration:
-
-```bash
-alembic revision --autogenerate -m "describe your change"
-```
-
-Review the generated migration before applying it.
-
-Apply the migration:
-
-```bash
-alembic upgrade head
-```
-
-Check the current migration:
-
-```bash
-alembic current
-```
-
-View migration history:
-
-```bash
-alembic history
-```
-
-# API Documentation
-
-After starting the backend:
-
-### Swagger UI
-
-```text
-http://localhost:8000/docs
-```
-
-### ReDoc
-
-```text
-http://localhost:8000/redoc
-```
-
-These interfaces can be used to explore and test the available REST API endpoints.
-
-# Health Check
-
-Check whether the API is running:
-
-```bash
-curl http://localhost:8000/health
-```
-
-# Statistics
-
-Retrieve SignalSnap statistics:
-
-```bash
-curl http://localhost:8000/stats
-```
-
-The response includes information such as visitor and event counts.
-
-# Testing the System
-
-After starting all services:
-
-1. Open the test website:
-
-```text
-http://localhost:3000
-```
-
-2. Perform actions on the website to generate tracking events.
-
-3. The events are sent to the SignalSnap backend.
-
-4. The backend publishes events to Redis.
-
-5. The background worker consumes and processes the events.
-
-6. Processed data is stored in PostgreSQL.
-
-7. Open the dashboard:
-
-```text
-http://localhost:5173
-```
-
-8. View the resulting visitor, session, event, intent, and lead information.
-
-# Troubleshooting
-
-## Redis Connection Issues
-
-Check whether Redis is running:
-
-```bash
-docker ps
-```
-
-If the container exists but is stopped:
-
-```bash
-docker start signalsnap-redis
-```
-
-## Database Migration Issues
-
-Check the current migration:
-
-```bash
-alembic current
-```
-
-Then run:
-
-```bash
-alembic upgrade head
-```
-
-## Backend Import Issues
-
-Make sure you are inside the backend directory:
-
-```bash
-cd backend
-```
-
-Then run:
-
-```bash
-uv run uvicorn app.main:app --reload
-```
-
-## Test Failures
-
-Run:
-
-```bash
-uv run pytest -v
-```
-
-For detailed output:
-
-```bash
-uv run pytest -vv
-```
-
-# Quick Start
-
-```bash
-# Create database
-psql -U postgres
-```
-
-```sql
-CREATE DATABASE signalsnap;
-```
-
-Then:
-
-```bash
-# Enter backend
-cd backend
-
-# Apply migrations
-alembic upgrade head
-
-# Start Redis
-docker run -d \
-  --name signalsnap-redis \
-  -p 6379:6379 \
-  redis:7
-
-# Start API
-uv run uvicorn app.main:app --reload
-```
-
-In another terminal:
-
-```bash
-cd backend
-uv run python -m app.workers
-```
-
-In another terminal:
-
-```bash
-cd dashboard
-python3 -m http.server 5173
-```
-
-In another terminal:
-
-```bash
-cd test-site
-python3 -m http.server 3000
-```
-
-Run tests:
+The SDK maintains a persistent `anonymous_id`, a per-tab `session_id`, batches events, automatically tracks page views, and retries failed requests.
+
+## API
+
+| Endpoint                   | Purpose         |
+| -------------------------- | --------------- |
+| `POST /auth/register`      | Register user   |
+| `POST /auth/token`         | Login / JWT     |
+| `POST /track`              | Track events    |
+| `GET /visitors`            | List visitors   |
+| `GET /visitors/{id}`       | Visitor details |
+| `GET /leads`               | List leads      |
+| `GET /leads/{id}`          | Lead details    |
+| `PATCH /leads/{id}/status` | Update lead     |
+| `GET /stats`               | Analytics       |
+| `GET /health`              | Health check    |
+
+## Testing
 
 ```bash
 cd backend
