@@ -1,0 +1,126 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: signalsnap-postgres-prod
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: signalsnap
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d signalsnap"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: signalsnap-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_prod_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: signalsnap-api-dev
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      DEBUG: "true"
+      CORS_ORIGINS: "*"
+      IPINFO_TOKEN: ""
+      SLACK_WEBHOOK_URL: ""
+      CRM_WEBHOOK_URL: ""
+      LEAD_SCORE_THRESHOLD: "20"
+      JWT_SECRET_KEY: secret
+      JWT_ALGORITHM: HS256
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "120"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/.venv
+    command:
+      - uv
+      - run
+      - uvicorn
+      - app.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --reload
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: signalsnap-worker-dev
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      DEBUG: "true"
+      IPINFO_TOKEN: ""
+      SLACK_WEBHOOK_URL: ""
+      CRM_WEBHOOK_URL: ""
+      LEAD_SCORE_THRESHOLD: "20"
+      JWT_SECRET_KEY: e83e05a703db0cda46ce057be3041633fe3c88f5793d46ac06f4e6e60922770a
+      JWT_ALGORITHM: HS256
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "120"
+    entrypoint: []
+    command:
+      - uv
+      - run
+      - python
+      - -m
+      - app.workers
+    volumes:
+      - ./backend:/app
+      - /app/.venv
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  dashboard:
+    image: nginx:alpine
+    container_name: signalsnap-dashboard-dev
+    ports:
+      - "80:80"
+    volumes:
+      - ./dashboard:/usr/share/nginx/html:ro
+    depends_on:
+      - api
+
+  test-site:
+    image: nginx:alpine
+    container_name: signalsnap-test-site-dev
+    ports:
+      - "3000:80"
+    volumes:
+      - ./test-site:/usr/share/nginx/html:ro
+      - ./pixel:/usr/share/nginx/html/pixel:ro
+    depends_on:
+      - api
+
+volumes:
+  postgres_prod_data:
+  redis_prod_data:

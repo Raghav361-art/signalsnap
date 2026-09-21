@@ -53,7 +53,7 @@
 
   var _cfg = {
     apiBase:       '',           // required — e.g. http://localhost:8000
-    token:         '',           // JWT bearer token (required by backend)
+    token:         '',           // JWT bearer token (optional)
     flushInterval: 3000,         // ms between automatic flushes
     autoPageView:  true,         // track page_view on init + navigation
     debug:         false,

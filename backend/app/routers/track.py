@@ -4,12 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Request, status, Depends
+from fastapi import APIRouter, Request, status
 
 from app.schemas.tracking import TrackBatch
 from app.services.queue import enqueue_events
-from app.dependencies import SessionDep, get_current_user
-from app.models.user import User
 
 
 router = APIRouter(
@@ -63,7 +61,6 @@ def detect_device(user_agent: str) -> str:
 async def track_events(
     payload: TrackBatch,
     request: Request,
-    current_user: User = Depends(get_current_user)
 ):
     """
     Receive tracking events and push them into Redis.

@@ -98,17 +98,14 @@
     if (!isHidden) return;
     // Populate current values
     document.getElementById('cfg-api').value = localStorage.getItem('ss_test_api') || 'http://localhost:8000';
-    document.getElementById('cfg-token').value = localStorage.getItem('ss_test_token') || localStorage.getItem('ss_token') || '';
     _updatePixelStatus();
   });
 
   document.getElementById('cfg-save').addEventListener('click', function () {
     var apiBase = document.getElementById('cfg-api').value.trim();
-    var token = document.getElementById('cfg-token').value.trim();
     localStorage.setItem('ss_test_api', apiBase);
-    localStorage.setItem('ss_test_token', token);
     document.getElementById('cfg-status').textContent = '✓ Saved. Initializing pixel…';
-    _initPixel(apiBase, token);
+    _initPixel(apiBase);
   });
 
   function _updatePixelStatus() {
@@ -138,9 +135,10 @@
   /*  Pixel initialisation                                             */
   /* ---------------------------------------------------------------- */
 
-  function _initPixel(apiBase, token) {
+  function _initPixel(apiBase) {
     if (typeof SignalSnap === 'undefined') {
-      document.getElementById('cfg-status').textContent = '✗ SignalSnap pixel not loaded';
+      var statusEl = document.getElementById('cfg-status');
+      if (statusEl) statusEl.textContent = '✗ SignalSnap pixel not loaded';
       return;
     }
 
@@ -149,22 +147,18 @@
 
     SignalSnap.init({
       apiBase: apiBase,
-      token: token,
       flushInterval: 2000,
       autoPageView: true,
       debug: true,
     });
 
-    document.getElementById('cfg-status').textContent = '✓ Pixel initialized';
+    var statusEl = document.getElementById('cfg-status');
+    if (statusEl) statusEl.textContent = '✓ Pixel initialized';
     _updatePixelStatus();
   }
 
-  // Auto-init if credentials are stored
-  var storedApi = localStorage.getItem('ss_test_api');
-  var storedToken = localStorage.getItem('ss_test_token') || localStorage.getItem('ss_token');
-
-  if (storedApi && storedToken) {
-    _initPixel(storedApi, storedToken);
-  }
+  // Auto-init immediately — no token required
+  var storedApi = localStorage.getItem('ss_test_api') || 'http://localhost:8000';
+  _initPixel(storedApi);
 
 })();

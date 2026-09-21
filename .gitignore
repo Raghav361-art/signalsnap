@@ -32,3 +32,6 @@ backend/user.md
 .idea/
 
 start.sh
+
+Dockerfile
+docker-compose.dev.yaml
