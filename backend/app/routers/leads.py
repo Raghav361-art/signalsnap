@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.dependencies import SessionDep, get_current_user
 from app.models.lead import Lead
 from app.models.user import User
+from app.models.visitor import Visitor
 
 
 router = APIRouter(
@@ -22,7 +23,6 @@ VALID_STATUSES = {
     "qualified",
     "lost",
 }
-
 
 class LeadStatusUpdate(BaseModel):
     status: str
@@ -68,10 +68,10 @@ async def get_lead(
         select(Lead)
         .options(
             selectinload(Lead.visitor).selectinload(
-                Lead.visitor.events
+                Visitor.events
             ),
             selectinload(Lead.visitor).selectinload(
-                Lead.visitor.sessions
+                Visitor.sessions
             ),
         )
         .where(Lead.id == lead_id)

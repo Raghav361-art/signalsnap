@@ -12,7 +12,7 @@ from app.services.routing import route_lead
 from app.services.scoring import calculate_intent_score
 
 
-LEAD_THRESHOLD = getattr(settings, "LEAD_SCORE_THRESHOLD", 20)
+LEAD_THRESHOLD = getattr(settings, "LEAD_SCORE_THRESHOLD", 5)
 LEAD_DEDUP_WINDOW = timedelta(hours=24)
 
 

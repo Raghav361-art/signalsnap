@@ -98,7 +98,7 @@ async def calculate_intent_score(
             raw_score = max(0, raw_score - decay)
             breakdown["inactivity_decay"] = -decay
 
-    if raw_score >= 20:
+    if raw_score >= 30:
         intent_level = "high"
     elif raw_score >= 10:
         intent_level = "medium"

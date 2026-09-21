@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SignalSnap — Analytics Dashboard</title>
+  <meta name="description" content="SignalSnap real-time visitor analytics, lead scoring, and intent tracking dashboard." />
+
+  <!-- Google Fonts: Inter + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/layouts.css" />
+  <link rel="stylesheet" href="css/charts.css" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%236366f1'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-weight='bold' font-size='18' font-family='sans-serif'>S</text></svg>" />
+
+  <style>
+    /* Inline: icon sizing */
+    .icon { display: inline-flex; align-items: center; justify-content: center; }
+    .icon svg { width: 1em; height: 1em; }
+    .nav-icon svg { width: 18px; height: 18px; }
+  </style>
+</head>
+<body>
+
+  <div class="app" id="app">
+    <!-- Filled dynamically by JS -->
+  </div>
+
+  <script type="module">
+    import api from './js/api.js';
+    import router from './js/router.js';
+    import theme from './js/theme.js';
+    import ui from './js/components.js';
+
+    import * as loginPage from './js/pages/login.js';
+    import * as overviewPage from './js/pages/overview.js';
+    import * as visitorsPage from './js/pages/visitors.js';
+    import * as visitorDetailPage from './js/pages/visitor-detail.js';
+    import * as leadsPage from './js/pages/leads.js';
+    import * as leadDetailPage from './js/pages/lead-detail.js';
+    import * as trackingTesterPage from './js/pages/tracking-tester.js';
+
+    // ---- Theme init ------------------------------------------------
+    theme.init();
+
+    // ---- Shell layout -----------------------------------------------
+    function renderShell() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <!-- Mobile nav toggle -->
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+          ${ui.icon('menu')}
+        </button>
+
+        <!-- Sidebar -->
+        <nav class="nav" id="sidebar" aria-label="Main navigation">
+          <div class="nav-brand">
+            <div class="nav-brand-logo" aria-hidden="true">S</div>
+            <div>
+              <div class="nav-brand-name">SignalSnap</div>
+              <div class="nav-brand-version">v1.0.0</div>
+            </div>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">Analytics</div>
+            <a href="#/overview" class="nav-link" data-route="/overview">
+              <span class="nav-icon">${ui.icons.overview}</span>
+              Overview
+            </a>
+            <a href="#/visitors" class="nav-link" data-route="/visitors">
+              <span class="nav-icon">${ui.icons.visitors}</span>
+              Visitors
+            </a>
+            <a href="#/leads" class="nav-link" data-route="/leads">
+              <span class="nav-icon">${ui.icons.leads}</span>
+              Leads
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">Developer</div>
+            <a href="#/tracking-tester" class="nav-link" data-route="/tracking-tester">
+              <span class="nav-icon">${ui.icons.code}</span>
+              Tracking Tester
+            </a>
+          </div>
+
+          <div class="nav-footer">
+            <!-- Theme toggle -->
+            <div class="flex gap-2" style="margin-bottom:var(--space-2)">
+              <button class="btn btn-ghost btn-sm btn-icon" data-theme-btn="light" aria-label="Light theme" data-tooltip="Light">${ui.icon('sun')}</button>
+              <button class="btn btn-ghost btn-sm btn-icon" data-theme-btn="dark" aria-label="Dark theme" data-tooltip="Dark">${ui.icon('moon')}</button>
+              <button class="btn btn-ghost btn-sm btn-icon" data-theme-btn="system" aria-label="System theme" data-tooltip="System">${ui.icon('monitor')}</button>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="logout-btn" style="width:100%;justify-content:flex-start">
+              ${ui.icon('logout')} Sign out
+            </button>
+          </div>
+        </nav>
+
+        <!-- Main content area -->
+        <main class="main" id="page-content" role="main">
+        </main>
+      `;
+
+      // Theme buttons
+      document.querySelectorAll('[data-theme-btn]').forEach(btn => {
+        btn.addEventListener('click', () => theme.set(btn.dataset.themeBtn));
+      });
+      // Update active state
+      theme.init();
+
+      // Logout
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        api.clearAuth();
+        router.navigate('/login');
+      });
+
+      // Mobile nav toggle
+      document.getElementById('nav-toggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+      });
+
+      // Close mobile nav on route change
+      window.addEventListener('hashchange', () => {
+        document.getElementById('sidebar')?.classList.remove('open');
+      });
+    }
+
+    // ---- Active page cleanup ----------------------------------------
+    let _activePage = null;
+
+    function setPage(page, params) {
+      if (_activePage && typeof _activePage.destroy === 'function') {
+        _activePage.destroy();
+      }
+      _activePage = page;
+    }
+
+    // ---- Routes -----------------------------------------------------
+
+    router.before((path) => {
+      // Auth guard: redirect to login if not authenticated
+      if (path !== '/login' && !api.isAuthenticated()) {
+        router.navigate('/login');
+        return false;
+      }
+      // Redirect away from login if already authenticated
+      if (path === '/login' && api.isAuthenticated()) {
+        router.navigate('/overview');
+        return false;
+      }
+      return true;
+    });
+
+    router.on('/login', () => {
+      setPage(loginPage);
+      loginPage.render();
+    });
+
+    router.on('/overview', () => {
+      if (!document.getElementById('sidebar')) renderShell();
+      setPage(overviewPage);
+      overviewPage.render();
+    });
+
+    router.on('/visitors', () => {
+      if (!document.getElementById('sidebar')) renderShell();
+      setPage(visitorsPage);
+      visitorsPage.render();
+    });
+
+    router.on('/visitors/:id', (params) => {
+      if (!document.getElementById('sidebar')) renderShell();
+      setPage(visitorDetailPage);
+      visitorDetailPage.render(params);
+    });
+
+    router.on('/leads', () => {
+      if (!document.getElementById('sidebar')) renderShell();
+      setPage(leadsPage);
+      leadsPage.render();
+    });
+
+    router.on('/leads/:id', (params) => {
+      if (!document.getElementById('sidebar')) renderShell();
+      setPage(leadDetailPage);
+      leadDetailPage.render(params);
+    });
+
+    router.on('/tracking-tester', () => {
+      if (!document.getElementById('sidebar')) renderShell();
+      setPage(trackingTesterPage);
+      trackingTesterPage.render();
+    });
+
+    router.notFound(() => {
+      router.navigate(api.isAuthenticated() ? '/overview' : '/login');
+    });
+
+    // Listen for auth expiration
+    window.addEventListener('ss:auth-expired', () => {
+      router.navigate('/login');
+    });
+
+    // ---- Start ------------------------------------------------------
+    router.start();
+  </script>
+</body>
+</html>

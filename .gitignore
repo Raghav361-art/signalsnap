@@ -30,3 +30,5 @@ backend/user.md
 # IDEs
 .vscode/
 .idea/
+
+start.sh
