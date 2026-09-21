@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acme SaaS — Accelerate Your Growth</title>
+  <meta name="description" content="Acme SaaS demo site — generates real SignalSnap tracking events for testing the analytics pipeline." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2310b981'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-weight='bold' font-size='18' font-family='sans-serif'>A</text></svg>" />
+</head>
+<body>
+
+  <!-- Tracking config panel (for devs) -->
+  <div class="config-panel" id="config-panel">
+    <button class="config-toggle" id="config-toggle" aria-label="Toggle tracking config">⚙</button>
+    <div class="config-body" id="config-body" hidden>
+      <h3>SignalSnap Config</h3>
+      <label>API Base
+        <input type="text" id="cfg-api" value="http://localhost:8000" />
+      </label>
+      <label>JWT Token
+        <input type="text" id="cfg-token" placeholder="Paste token from dashboard login" />
+      </label>
+      <div class="config-actions">
+        <button id="cfg-save" class="cfg-btn">Save & Reload Pixel</button>
+      </div>
+      <div class="config-status" id="cfg-status"></div>
+      <div class="config-info">
+        <strong>Pixel Status:</strong> <span id="cfg-pixel-status">Not initialized</span><br/>
+        <strong>Anon ID:</strong> <span id="cfg-anon-id">—</span><br/>
+        <strong>Session ID:</strong> <span id="cfg-session-id">—</span><br/>
+        <strong>Queue:</strong> <span id="cfg-queue">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <nav class="site-nav">
+      <div class="site-logo">
+        <span class="logo-icon">A</span>
+        <span class="logo-text">Acme</span>
+      </div>
+      <div class="nav-links" id="nav-links">
+        <a href="#home" class="nav-link active" data-page="home">Home</a>
+        <a href="#features" class="nav-link" data-page="features">Features</a>
+        <a href="#pricing" class="nav-link" data-page="pricing">Pricing</a>
+        <a href="#blog" class="nav-link" data-page="blog">Blog</a>
+        <a href="#contact" class="nav-link" data-page="contact">Contact</a>
+      </div>
+      <button class="cta-btn header-cta" data-track="button_click" data-meta='{"label":"header-cta"}'>Get Started</button>
+    </nav>
+  </header>
+
+  <!-- Pages -->
+  <main id="page-container">
+
+    <!-- Home -->
+    <section class="page" id="page-home">
+      <div class="hero">
+        <div class="hero-badge">🚀 Now in public beta</div>
+        <h1 class="hero-title">Accelerate your <span class="gradient-text">growth</span> with Acme</h1>
+        <p class="hero-desc">The all-in-one platform that helps modern teams ship faster, measure smarter, and grow efficiently.</p>
+        <div class="hero-actions">
+          <button class="cta-btn" data-track="button_click" data-meta='{"label":"hero-start-free"}'>Start Free</button>
+          <button class="cta-btn cta-secondary" data-track="button_click" data-meta='{"label":"hero-watch-demo"}'>Watch Demo</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><strong>10K+</strong><span>Companies</span></div>
+          <div class="hero-stat"><strong>99.9%</strong><span>Uptime</span></div>
+          <div class="hero-stat"><strong>150+</strong><span>Countries</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="page" id="page-features" hidden>
+      <div class="section-container">
+        <h2 class="section-title">Built for modern teams</h2>
+        <p class="section-desc">Everything you need to move fast and stay in control.</p>
+        <div class="features-grid">
+          <div class="feature-card" data-track="button_click" data-meta='{"label":"feature-analytics"}'>
+            <div class="feature-icon">📊</div>
+            <h3>Real-time Analytics</h3>
+            <p>Track every visitor interaction as it happens. Understand behavior, identify intent, and act on signals.</p>
+          </div>
+          <div class="feature-card" data-track="button_click" data-meta='{"label":"feature-scoring"}'>
+            <div class="feature-icon">🎯</div>
+            <h3>Lead Scoring</h3>
+            <p>Automatically score visitors based on engagement patterns, page visits, time on site, and return behavior.</p>
+          </div>
+          <div class="feature-card" data-track="button_click" data-meta='{"label":"feature-pipeline"}'>
+            <div class="feature-icon">🔄</div>
+            <h3>Lead Pipeline</h3>
+            <p>Manage leads through customizable pipeline stages with drag-and-drop Kanban boards.</p>
+          </div>
+          <div class="feature-card" data-track="button_click" data-meta='{"label":"feature-enrichment"}'>
+            <div class="feature-icon">🏢</div>
+            <h3>Company Enrichment</h3>
+            <p>Automatically identify visitor companies and locations from IP intelligence data.</p>
+          </div>
+          <div class="feature-card" data-track="button_click" data-meta='{"label":"feature-alerts"}'>
+            <div class="feature-icon">🔔</div>
+            <h3>Slack Alerts</h3>
+            <p>Get instant Slack notifications when high-intent leads are detected on your site.</p>
+          </div>
+          <div class="feature-card" data-track="button_click" data-meta='{"label":"feature-crm"}'>
+            <div class="feature-icon">🔗</div>
+            <h3>CRM Integration</h3>
+            <p>Push qualified leads to your CRM automatically via configurable webhook integrations.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="page" id="page-pricing" hidden>
+      <div class="section-container">
+        <h2 class="section-title">Simple, transparent pricing</h2>
+        <p class="section-desc">Start free. Upgrade when you're ready.</p>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <h3>Starter</h3>
+            <div class="price">$0<span>/month</span></div>
+            <ul>
+              <li>Up to 1,000 visitors/mo</li>
+              <li>Basic analytics</li>
+              <li>7-day data retention</li>
+              <li>Email support</li>
+            </ul>
+            <button class="cta-btn cta-secondary" data-track="button_click" data-meta='{"label":"pricing-starter"}'>Get Started</button>
+          </div>
+          <div class="pricing-card featured">
+            <div class="pricing-badge">Most Popular</div>
+            <h3>Pro</h3>
+            <div class="price">$49<span>/month</span></div>
+            <ul>
+              <li>Up to 25,000 visitors/mo</li>
+              <li>Lead scoring & pipeline</li>
+              <li>90-day data retention</li>
+              <li>Slack integration</li>
+              <li>Priority support</li>
+            </ul>
+            <button class="cta-btn" data-track="button_click" data-meta='{"label":"pricing-pro"}'>Start Free Trial</button>
+          </div>
+          <div class="pricing-card">
+            <h3>Enterprise</h3>
+            <div class="price">Custom</div>
+            <ul>
+              <li>Unlimited visitors</li>
+              <li>Custom integrations</li>
+              <li>Unlimited retention</li>
+              <li>CRM webhooks</li>
+              <li>Dedicated support</li>
+            </ul>
+            <button class="cta-btn cta-secondary" data-track="button_click" data-meta='{"label":"pricing-enterprise"}'>Contact Sales</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Blog -->
+    <section class="page" id="page-blog" hidden>
+      <div class="section-container">
+        <h2 class="section-title">From the blog</h2>
+        <p class="section-desc">Insights on growth, analytics, and modern go-to-market.</p>
+        <div class="blog-grid">
+          <article class="blog-card" data-track="button_click" data-meta='{"label":"blog-intent-scoring"}'>
+            <div class="blog-tag">Product</div>
+            <h3>How Intent Scoring Works</h3>
+            <p>A deep dive into our scoring algorithm — from page views and session duration to return visitor signals.</p>
+            <span class="blog-date">Sep 15, 2026</span>
+          </article>
+          <article class="blog-card" data-track="button_click" data-meta='{"label":"blog-visitor-tracking"}'>
+            <div class="blog-tag">Engineering</div>
+            <h3>Building a Real-Time Visitor Tracker</h3>
+            <p>How we built SignalSnap's event pipeline with Redis Streams, async workers, and sub-second processing.</p>
+            <span class="blog-date">Sep 8, 2026</span>
+          </article>
+          <article class="blog-card" data-track="button_click" data-meta='{"label":"blog-privacy"}'>
+            <div class="blog-tag">Privacy</div>
+            <h3>Anonymous Analytics Done Right</h3>
+            <p>How to track meaningful visitor behavior without collecting personally identifiable information.</p>
+            <span class="blog-date">Sep 1, 2026</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="page" id="page-contact" hidden>
+      <div class="section-container" style="max-width:560px">
+        <h2 class="section-title">Get in touch</h2>
+        <p class="section-desc">Have a question or want a demo? We'd love to hear from you.</p>
+        <form class="contact-form" id="contact-form" novalidate>
+          <label>Name
+            <input type="text" id="contact-name" placeholder="Jane Doe" required />
+          </label>
+          <label>Email
+            <input type="email" id="contact-email" placeholder="jane@company.com" required />
+          </label>
+          <label>Company
+            <input type="text" id="contact-company" placeholder="Acme Inc" />
+          </label>
+          <label>Message
+            <textarea id="contact-message" rows="4" placeholder="Tell us about your use case…" required></textarea>
+          </label>
+          <button type="submit" class="cta-btn" style="width:100%" data-track="form_submit" data-meta='{"form":"contact"}'>Send Message</button>
+          <div id="contact-success" hidden class="success-msg">✓ Message sent! We'll get back to you soon.</div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">A</span>
+        <span>Acme</span>
+      </div>
+      <div class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#blog">Blog</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="footer-copy">© 2026 Acme SaaS. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <!-- Load SignalSnap pixel -->
+  <script src="../pixel/signalsnap.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
